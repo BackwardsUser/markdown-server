@@ -10,7 +10,7 @@ const app = express();
 
 function getConfig() {
   const config = toml.parse(fs.readFileSync(path.join(__dirname, "config.toml"), 'utf-8').toString());
-  if (!config || !config.page || !config.server) {
+  if (!config || !config.page) {
     throw new Error("Invalid Configuration file...");
   }
   return config;
@@ -21,11 +21,19 @@ const pagesDir = path.join(__dirname, "pages");
 function getStylesheet(theme) {
   let styles;
   
-  const themeFilePath = path.join(__dirname, "themes", `${theme}.css`);
+  const themeFilePath = path.join(__dirname, "themes");
 
-  if (fs.existsSync(themeFilePath)) {
-    const themeFile = fs.readFileSync(themeFilePath, 'utf-8');
-    styles = themeFile
+  const themeDirPath = fs.readdirSync(themeFilePath, { recursive: true }).filter(file => file.endsWith(".css"));
+  let themeFile;
+  for (const file of themeDirPath) {
+    if (file.endsWith(`${theme}.css`)) {
+      themeFile = path.join(themeFilePath, file);
+      break;
+    }
+  }
+
+  if (themeFile && fs.existsSync(themeFile)) {
+    styles = fs.readFileSync(themeFile, 'utf-8');
   } else {
     styles = ""
   }
@@ -69,7 +77,6 @@ function main() {
 
   app.get(routes, (req, res, next) => {
     const theme = getConfig().page.theme || "";
-    console.log(theme);
     const page = pages.get(req.url);
 
     const file = fs.readFileSync(page, 'utf-8').split("\n");

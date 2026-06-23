@@ -1,0 +1,3 @@
+[submodule "themes/official"]
+	path = themes/official
+	url = https://github.com/BackwardsUser/markdown-server-themes.git
